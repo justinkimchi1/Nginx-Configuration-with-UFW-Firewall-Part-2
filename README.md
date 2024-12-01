@@ -155,7 +155,7 @@ journalctl -u generate-index.service
 You have created your service and timer files!
 
 ### Configure `nginx`
-This entire section was made with the help of [Nginx ArchWiki](#7-nginx) and [Week 10 Notes](#8-week-twelve-notes).
+This entire section was made with the help of [Nginx ArchWiki](#7-nginx) and [Week 12 Notes](#8-week-twelve-notes).
 1. Install `nginx`
 ```
 sudo pacman -S nginx
@@ -170,6 +170,136 @@ Check if it is active and running with
 systemctl status nginx.service
 ```
 
+3. Modify the nginx configuration file
+```
+sudo nvim /etc/nginx/nginx.conf
+```
+Here we have to configure the file so that it runs with our `webgen` user and that is serves our `index.html` file on port 80. To do this we first need to change `user` from `http` to `webgen`:
+```bash
+user webgen webgen
+```
+> This tells nginx to run the master process as `webgen`. This gives the configuration files the correct permissions to manage files in `webgen`'s directories
+
+Add this line of code into you `http` section
+```bash
+http {
+    include /etc/nginx/sites-enabled/*;
+}
+```
+This helps load our other configuration files that we will make in the next steps
+
+> Note: make sure to comment out any other server blocks that are in your default configuration file
+
+
+4. Create server block directories
+```
+sudo mkdir /etc/nginx/sites-available /etc/nginx/sites-enabled 
+```
+
+5. Create configuration file inside `sites-available` directory
+```
+sudo nvim /etc/nginx/sites-available/webgen.conf
+```
+Paste the following server block into the configuration file and give the `server_name` a name [[12]](#12-week-thirteen-notes)
+```bash
+server {
+        # listening on port 80
+        listen 80;
+        # listening to HTTPS connections using IPv6
+        listen [::]:80;
+
+        # giving server a name
+        server_name 147.182.224.70;
+
+        location /documents {
+            root /var/lib/webgen/;
+            autoindex on;
+            autoindex_exact_size off;
+            autoindex_localtime on;
+            try_files $uri $uri/ =404;
+        }
+
+        location / {
+            root /var/lib/webgen/HTML;
+            index index.html;
+            try_files $uri $uri/ =404;
+        }
+
+}
+```
+
+6. Create a symlink to enable the site
+```
+sudo ln -s /etc/nginx/sites-available/webgen.conf /etc/nginx/sites-enabled/
+```
+7. Restart your nginx service
+```
+sudo systemctl restart nginx
+```
+You have configured your nginx server! 
+
+> Some troubleshooting:
+
+- Checking `webgen.conf` file for any errors: 
+```
+sudo nginx -t
+```
+- Checking the status of nginx:
+```
+systemctl status nginx
+```
+- Starting, enabling, restarting, stopping nginx:
+```
+systemctl start/enable/restart/stop nginx
+```
+- Checking journal log of service
+```
+sudo journalctl -u nginx
+```
+
+### Set up `ufw` firewall
+Here we will set up a simple firewall and check the status of the firewall with `sudo ufw status` after we are done. [[9]](#9-uncomplicated-firewall)
+1. Install UFW
+```
+sudo pacman -S ufw
+```
+
+> ⚠️ **Warning:** Do not enable the UFW service yet because it will lock us out of our droplet. Please follow the next steps first.
+
+2. Enable `ssh` and `http` connection [[8]](#8-week-twelve-notes)
+```
+sudo ufw allow SSH
+sudo ufw allow http
+```
+> If successful, you should see `Rules updated` and `Rules updated (v6)` in your terminal
+
+3. Enable ssh rate limiting [[9]](#9-uncomplicated-firewall)
+```
+sudo ufw limit SSH
+```
+> This denies connections from ip addresses that have attempted to intiate 6 or more connections in the last 30 seconds
+
+4. Enable the service. This step should only be done after completing steps 2 & 3!
+```
+sudo ufw enable 
+```
+You can check your firewall status with:
+```
+sudo ufw status
+```
+Your firewall should looks something like this:
+```
+Status: active
+
+To                         Action      From
+--                         ------      ----
+SSH                        LIMIT       Anywhere
+80                         ALLOW       Anywhere
+SSH (v6)                   LIMIT       Anywhere (v6)
+80 (v6)                    ALLOW       Anywhere (v6)
+```
+
+You have activated your firewall!
 
 # References
 #### [1] Useradd Command
@@ -194,3 +324,5 @@ ArchWiki, "Uncomplicated Firewall," https://wiki.archlinux.org/title/Uncomplicat
 ArchWiki, "Users and Groups: Example Adding a System User" https://wiki.archlinux.org/title/Users_and_groups#Example_adding_a_system_user (accessed Nov. 23, 2024).
 #### [11] Chmod Command
 SS64, "Chmod Command," https://ss64.com/bash/chmod.html (accessed Nov. 30, 2024).
+#### [12] Week Thirteen Notes
+GitLab, "Week Thirteen Notes," https://gitlab.com/cit2420/2420-notes-f24/-/blob/main/2420-notes/week-thirteen.md (accessed Nov. 30, 2024).
