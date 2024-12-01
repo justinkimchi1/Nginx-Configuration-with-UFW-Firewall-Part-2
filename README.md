@@ -209,19 +209,21 @@ server {
         listen [::]:80;
 
         # giving server a name
-        server_name 147.182.224.70;
+        server_name <name-or-ip>;
 
+        # root directory of the /documents files
         location /documents {
             root /var/lib/webgen/;
-            autoindex on;
-            autoindex_exact_size off;
-            autoindex_localtime on;
-            try_files $uri $uri/ =404;
+            autoindex on; # Allows us to see all files and directories in the specified location
+            autoindex_exact_size off; # displays the file sizes in a readable format
+            autoindex_localtime on; # displays file timestamps of the server's local time
+            try_files $uri $uri/ =404; # checks the existence of files and directories
         }
 
+        # handling the default location request
         location / {
             root /var/lib/webgen/HTML;
-            index index.html;
+            index index.html; # specify the index.html page
             try_files $uri $uri/ =404;
         }
 
@@ -300,6 +302,33 @@ SSH (v6)                   LIMIT       Anywhere (v6)
 ```
 
 You have activated your firewall!
+
+## Accessing your server
+1. Access your server by entering your Load Balancers IP address into the web:
+```
+http://load-balancer-ip
+```
+Example:
+```
+http://143.198.247.222
+```
+
+After pressing enter you will be redirected to one of your servers html page:
+![Default Page](./defaultpage.png)
+
+2. To access /documents add the `/documents` next to the url
+```
+http://load-balancer-ip/documents
+```
+
+Example:
+```
+http://143.198.247.222/documents/
+```
+You should see something like this:
+![Documents Page](./documentspagepng.png)
+
+**Congratulations, you have completed this tutorial!**
 
 # References
 #### [1] Useradd Command
