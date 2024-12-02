@@ -1,5 +1,5 @@
 # Assignment 3 Part 2
-Creating servers and configuring a load balancer to them
+Creating file servers using `nginx` and configuring a load balancer to them
 
 ## Task 1 Creating Droplets with `web` tag
 1. Go to DigitalOcean and create two droplets with the tag `web`
