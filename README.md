@@ -1,4 +1,4 @@
-# Assignment 3 Part 2
+# Nginx Project Part 2
 Creating file servers using `nginx` and configuring a load balancer to them
 
 ## Task 1 Creating Droplets with `web` tag
